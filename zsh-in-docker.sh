@@ -4,14 +4,17 @@ set -e
 THEME=default
 PLUGINS=""
 ZSHRC_APPEND=""
+OPTIONALS=""
 
-while getopts ":t:p:a:" opt; do
+while getopts ":t:p:a:o:" opt; do
     case ${opt} in
         t)  THEME=$OPTARG
             ;;
         p)  PLUGINS="${PLUGINS}$OPTARG "
             ;;
         a)  ZSHRC_APPEND="$ZSHRC_APPEND\n$OPTARG"
+            ;;
+        o)  OPTIONALS="${OPTIONALS}$OPTARG "
             ;;
         \?)
             echo "Invalid option: $OPTARG" 1>&2
@@ -41,6 +44,14 @@ check_version() {
         . /etc/os-release
         echo $VERSION_ID
     )
+}
+
+install_gcloud() {
+    sudo apt-get install apt-transport-https ca-certificates gnupg
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y \
+    && apt-get install google-cloud-cli -y \
+    && apt-get install kubectl
 }
 
 install_dependencies() {
@@ -155,3 +166,6 @@ if [ "$THEME" = "default" ]; then
     git clone https://github.com/romkatv/powerlevel10k $HOME/.oh-my-zsh/custom/themes/powerlevel10k
     powerline10k_config >> $HOME/.zshrc
 fi
+
+for optional in $OPTIONALS; do
+    install_$optional
