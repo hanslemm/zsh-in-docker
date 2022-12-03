@@ -1,4 +1,4 @@
-# Oh My Zsh Installer for Docker
+# Python + Oh My Zsh Installer for Docker
 
 [![Last Release](https://img.shields.io/github/v/release/deluan/zsh-in-docker?label=latest&style=flat-square)](https://github.com/deluan/zsh-in-docker/releases/latest)
 [![Build](https://img.shields.io/github/workflow/status/deluan/zsh-in-docker/CI?style=flat-square)](https://github.com/deluan/zsh-in-docker/actions)
@@ -18,7 +18,7 @@ One line installation: add the following line in your `Dockerfile`:
 
 ```Dockerfile
 # Default powerline10k theme, no plugins installed
-RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.3/zsh-in-docker.sh)"
+RUN sh -c "$(wget -O- https://github.com/hanslemm/zsh-in-docker/releases/download/v1.1.3/zsh-in-docker.sh)"
 ```
 
 #### Optional arguments:
@@ -38,6 +38,8 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.3/zsh-in-docker.sh)" -- \
   -a 'CASE_SENSITIVE="true"'
   ```
+- `-o <optional>` - You can install other optionals such as:
+  - `gcloud` 
 
 #### Examples:
 
