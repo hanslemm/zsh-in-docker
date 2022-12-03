@@ -169,3 +169,4 @@ fi
 
 for optional in $OPTIONALS; do
     install_$optional
+done
