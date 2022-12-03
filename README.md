@@ -18,7 +18,7 @@ One line installation: add the following line in your `Dockerfile`:
 
 ```Dockerfile
 # Default powerline10k theme, no plugins installed
-RUN sh -c "$(wget -O- https://github.com/hanslemm/zsh-in-docker/releases/download/v1.1.3/zsh-in-docker.sh)"
+RUN sh -c "$(wget -O- https://github.com/hanslemm/zsh-in-docker/releases/download/0.1.0/zsh-in-docker.sh)"
 ```
 
 #### Optional arguments:
