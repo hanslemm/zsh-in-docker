@@ -1,6 +1,6 @@
 # This is only used for developing the zsh-in-docker script, but can be used as an example.
 
-FROM python3.10
+FROM python:3.10
 
 ARG USERNAME=vscode
 ARG USER_UID=1000
