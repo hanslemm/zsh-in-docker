@@ -6,25 +6,26 @@ PLUGINS=""
 ZSHRC_APPEND=""
 OPTIONALS=""
 
-while getopts ":t:p:a:o:" opt; do
+while getopts ":t:p:a:" opt; do
     case ${opt} in
-        t)  THEME=$OPTARG
-            ;;
-        p)  PLUGINS="${PLUGINS}$OPTARG "
-            ;;
-        a)  ZSHRC_APPEND="$ZSHRC_APPEND\n$OPTARG"
-            ;;
-        o)  OPTIONALS="${OPTIONALS}$OPTARG "
-            ;;
-        \?)
-            echo "Invalid option: $OPTARG" 1>&2
-            ;;
-        :)
-            echo "Invalid option: $OPTARG requires an argument" 1>&2
-            ;;
+    t)
+        THEME=$OPTARG
+        ;;
+    p)
+        PLUGINS="${PLUGINS}$OPTARG "
+        ;;
+    a)
+        ZSHRC_APPEND="$ZSHRC_APPEND\n$OPTARG"
+        ;;
+    \?)
+        echo "Invalid option: $OPTARG" 1>&2
+        ;;
+    :)
+        echo "Invalid option: $OPTARG requires an argument" 1>&2
+        ;;
     esac
 done
-shift $((OPTIND -1))
+shift $((OPTIND - 1))
 
 echo
 echo "Installing Oh-My-Zsh with:"
@@ -46,20 +47,12 @@ check_version() {
     )
 }
 
-install_gcloud() {
-    sudo apt-get install apt-transport-https ca-certificates gnupg
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
-    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg  add - && apt-get update -y \
-    && apt-get install google-cloud-cli -y \
-    && apt-get install kubectl
-}
-
 install_dependencies() {
-    DIST=`check_dist`
-    VERSION=`check_version`
+    DIST=$(check_dist)
+    VERSION=$(check_version)
     echo "###### Installing dependencies for $DIST"
 
-    if [ "`id -u`" = "0" ]; then
+    if [ "$(id -u)" = "0" ]; then
         Sudo=''
     elif which sudo; then
         Sudo='sudo'
@@ -73,40 +66,42 @@ install_dependencies() {
     fi
 
     case $DIST in
-        alpine)
-            $Sudo apk add --update --no-cache git curl zsh
+    alpine)
+        $Sudo apk add --update --no-cache git curl zsh
         ;;
-        amzn)
-            $Sudo yum update -y
-            $Sudo yum install -y git curl zsh
-            $Sudo yum install -y ncurses-compat-libs # this is required for AMZN Linux (ref: https://github.com/emqx/emqx/issues/2503)
+    amzn)
+        $Sudo yum update -y
+        $Sudo yum install -y git curl zsh
+        $Sudo yum install -y ncurses-compat-libs # this is required for AMZN Linux (ref: https://github.com/emqx/emqx/issues/2503)
         ;;
-        *)
-            $Sudo apt-get update
-            $Sudo apt-get -y install git curl zsh locales
-            if [ "$VERSION" != "14.04" ]; then
-                $Sudo apt-get -y install locales-all
-            fi
-            $Sudo locale-gen en_US.UTF-8
+    *)
+        $Sudo apt-get update
+        $Sudo apt-get -y install git curl zsh locales
+        if [ "$VERSION" != "14.04" ]; then
+            $Sudo apt-get -y install locales-all
+        fi
+        $Sudo locale-gen en_US.UTF-8
+        ;;
     esac
 }
 
 zshrc_template() {
-    _HOME=$1;
-    _THEME=$2; shift; shift
-    _PLUGINS=$*;
+    _HOME=$1
+    _THEME=$2
+    shift 2
+    _PLUGINS=$*
 
     if [ "$_THEME" = "default" ]; then
         _THEME="powerlevel10k/powerlevel10k"
     fi
 
-    cat <<EOM
+    cat << EOM
 export LANG='en_US.UTF-8'
 export LANGUAGE='en_US:en'
 export LC_ALL='en_US.UTF-8'
 export TERM=xterm
 
-##### Zsh/Oh-my-Zsh Configuration
+# Zsh/Oh-my-Zsh Configuration
 export ZSH="$_HOME/.oh-my-zsh"
 
 ZSH_THEME="${_THEME}"
@@ -118,7 +113,7 @@ EOM
 }
 
 powerline10k_config() {
-    cat <<EOM
+    cat << EOM
 POWERLEVEL9K_SHORTEN_STRATEGY="truncate_to_last"
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(user dir vcs status)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=()
@@ -139,8 +134,11 @@ fi
 # Generate plugin list
 plugin_list=""
 for plugin in $PLUGINS; do
-    if [ "`echo $plugin | grep -E '^http.*'`" != "" ]; then
-        plugin_name=`basename $plugin`
+    if [ "$(echo $plugin | grep -E '^http.*')" != "" ]; then
+        plugin_name=$(basename $plugin)
+        if $plugin_name eq "zsh-autoswitch-virtualenv"; then
+            plugin_name="autoswitch-virtualenv"
+        fi
         git clone $plugin $HOME/.oh-my-zsh/custom/plugins/$plugin_name
     else
         plugin_name=$plugin
@@ -149,24 +147,23 @@ for plugin in $PLUGINS; do
 done
 
 # Handle themes
-if [ "`echo $THEME | grep -E '^http.*'`" != "" ]; then
-    theme_repo=`basename $THEME`
+if [ "$(echo $THEME | grep -E '^http.*')" != "" ]; then
+    theme_repo=$(basename $THEME)
     THEME_DIR="$HOME/.oh-my-zsh/custom/themes/$theme_repo"
     git clone $THEME $THEME_DIR
-    theme_name=`cd $THEME_DIR; ls *.zsh-theme | head -1`
+    theme_name=$(
+        cd $THEME_DIR
+        ls *.zsh-theme | head -1
+    )
     theme_name="${theme_name%.zsh-theme}"
     THEME="$theme_repo/$theme_name"
 fi
 
 # Generate .zshrc
-zshrc_template "$HOME" "$THEME" "$plugin_list" > $HOME/.zshrc
+zshrc_template "$HOME" "$THEME" "$plugin_list" >$HOME/.zshrc
 
 # Install powerlevel10k if no other theme was specified
 if [ "$THEME" = "default" ]; then
     git clone https://github.com/romkatv/powerlevel10k $HOME/.oh-my-zsh/custom/themes/powerlevel10k
-    powerline10k_config >> $HOME/.zshrc
+    powerline10k_config >>$HOME/.zshrc
 fi
-
-for optional in $OPTIONALS; do
-    install_$optional
-done
